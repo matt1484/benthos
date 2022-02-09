@@ -234,11 +234,11 @@ type Switch struct {
 	mOutputErr metrics.StatCounter
 
 	maxInFlight  int
-	transactions <-chan types.Transaction
+	transactions <-chan message.Transaction
 
 	retryUntilSuccess bool
 	strictMode        bool
-	outputTSChans     []chan types.Transaction
+	outputTSChans     []chan message.Transaction
 	outputs           []types.Output
 	checks            []*mapping.Executor
 	continues         []bool
@@ -299,12 +299,12 @@ func NewSwitch(
 		o.continues[i] = cConf.Continue
 	}
 
-	o.outputTSChans = make([]chan types.Transaction, len(o.outputs))
+	o.outputTSChans = make([]chan message.Transaction, len(o.outputs))
 	for i := range o.outputTSChans {
 		if mif, ok := output.GetMaxInFlight(o.outputs[i]); ok && mif > o.maxInFlight {
 			o.maxInFlight = mif
 		}
-		o.outputTSChans[i] = make(chan types.Transaction)
+		o.outputTSChans[i] = make(chan message.Transaction)
 		if err := o.outputs[i].Consume(o.outputTSChans[i]); err != nil {
 			return nil, err
 		}
@@ -315,7 +315,7 @@ func NewSwitch(
 //------------------------------------------------------------------------------
 
 // Consume assigns a new transactions channel for the broker to read.
-func (o *Switch) Consume(transactions <-chan types.Transaction) error {
+func (o *Switch) Consume(transactions <-chan message.Transaction) error {
 	if o.transactions != nil {
 		return component.ErrAlreadyStarted
 	}
@@ -360,7 +360,7 @@ func (o *Switch) dispatchRetryOnErr(outputTargets [][]*message.Part) error {
 			// Try until success or shutdown.
 			for {
 				select {
-				case o.outputTSChans[i] <- types.NewTransaction(msgCopy, resChan):
+				case o.outputTSChans[i] <- message.NewTransaction(msgCopy, resChan):
 				case <-o.ctx.Done():
 					return component.ErrTypeClosed
 				}
@@ -443,7 +443,7 @@ func (o *Switch) dispatchNoRetries(group *imessage.SortGroup, sourceMessage *mes
 
 			resChan := make(chan response.Error)
 			select {
-			case o.outputTSChans[i] <- types.NewTransaction(msgCopy, resChan):
+			case o.outputTSChans[i] <- message.NewTransaction(msgCopy, resChan):
 			case <-o.ctx.Done():
 				setErr(component.ErrTypeClosed)
 				return
@@ -497,7 +497,7 @@ func (o *Switch) loop() {
 	sendLoop := func() {
 		defer wg.Done()
 		for {
-			var ts types.Transaction
+			var ts message.Transaction
 			var open bool
 
 			select {
