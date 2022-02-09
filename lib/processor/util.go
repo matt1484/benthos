@@ -4,7 +4,6 @@ import (
 	imessage "github.com/Jeffail/benthos/v3/internal/message"
 	"github.com/Jeffail/benthos/v3/internal/tracing"
 	"github.com/Jeffail/benthos/v3/lib/message"
-	"github.com/Jeffail/benthos/v3/lib/response"
 	"github.com/Jeffail/benthos/v3/lib/types"
 )
 
@@ -13,16 +12,15 @@ import (
 // ExecuteAll attempts to execute a slice of processors to a message. Returns
 // N resulting messages or a response. The response may indicate either a NoAck
 // in the event of the message being buffered or an unrecoverable error.
-func ExecuteAll(procs []types.Processor, msgs ...*message.Batch) ([]*message.Batch, types.Response) {
+func ExecuteAll(procs []types.Processor, msgs ...*message.Batch) ([]*message.Batch, error) {
 	resultMsgs := make([]*message.Batch, len(msgs))
 	copy(resultMsgs, msgs)
 
-	var resultRes types.Response
 	for i := 0; len(resultMsgs) > 0 && i < len(procs); i++ {
 		var nextResultMsgs []*message.Batch
 		for _, m := range resultMsgs {
-			var rMsgs []*message.Batch
-			if rMsgs, resultRes = procs[i].ProcessMessage(m); resultRes != nil && resultRes.AckError() != nil {
+			rMsgs, resultRes := procs[i].ProcessMessage(m)
+			if resultRes != nil {
 				// We immediately return if a processor hits an unrecoverable
 				// error on a message.
 				return nil, resultRes
@@ -32,12 +30,6 @@ func ExecuteAll(procs []types.Processor, msgs ...*message.Batch) ([]*message.Bat
 		resultMsgs = nextResultMsgs
 	}
 
-	if len(resultMsgs) == 0 {
-		if resultRes == nil {
-			resultRes = response.NewAck()
-		}
-		return nil, resultRes
-	}
 	return resultMsgs, nil
 }
 
@@ -46,11 +38,10 @@ func ExecuteAll(procs []types.Processor, msgs ...*message.Batch) ([]*message.Bat
 // subsequent processors. Returns N resulting messages or a response. The
 // response may indicate either a NoAck in the event of the message being
 // buffered or an unrecoverable error.
-func ExecuteTryAll(procs []types.Processor, msgs ...*message.Batch) ([]*message.Batch, types.Response) {
+func ExecuteTryAll(procs []types.Processor, msgs ...*message.Batch) ([]*message.Batch, error) {
 	resultMsgs := make([]*message.Batch, len(msgs))
 	copy(resultMsgs, msgs)
 
-	var resultRes types.Response
 	for i := 0; len(resultMsgs) > 0 && i < len(procs); i++ {
 		var nextResultMsgs []*message.Batch
 		for _, m := range resultMsgs {
@@ -59,8 +50,8 @@ func ExecuteTryAll(procs []types.Processor, msgs ...*message.Batch) ([]*message.
 				nextResultMsgs = append(nextResultMsgs, m)
 				continue
 			}
-			var rMsgs []*message.Batch
-			if rMsgs, resultRes = procs[i].ProcessMessage(m); resultRes != nil && resultRes.AckError() != nil {
+			rMsgs, resultRes := procs[i].ProcessMessage(m)
+			if resultRes != nil {
 				// We immediately return if a processor hits an unrecoverable
 				// error on a message.
 				return nil, resultRes
@@ -70,12 +61,6 @@ func ExecuteTryAll(procs []types.Processor, msgs ...*message.Batch) ([]*message.
 		resultMsgs = nextResultMsgs
 	}
 
-	if len(resultMsgs) == 0 {
-		if resultRes == nil {
-			resultRes = response.NewAck()
-		}
-		return nil, resultRes
-	}
 	return resultMsgs, nil
 }
 
@@ -83,11 +68,11 @@ func ExecuteTryAll(procs []types.Processor, msgs ...*message.Batch) ([]*message.
 // that have failed a processing step. Returns N resulting messages or a
 // response. The response may indicate either a NoAck in the event of the
 // message being buffered or an unrecoverable error.
-func ExecuteCatchAll(procs []types.Processor, msgs ...*message.Batch) ([]*message.Batch, types.Response) {
+func ExecuteCatchAll(procs []types.Processor, msgs ...*message.Batch) ([]*message.Batch, error) {
 	resultMsgs := make([]*message.Batch, len(msgs))
 	copy(resultMsgs, msgs)
 
-	var resultRes types.Response
+	var resultRes error
 	for i := 0; len(resultMsgs) > 0 && i < len(procs); i++ {
 		var nextResultMsgs []*message.Batch
 		for _, m := range resultMsgs {
@@ -97,7 +82,7 @@ func ExecuteCatchAll(procs []types.Processor, msgs ...*message.Batch) ([]*messag
 				continue
 			}
 			var rMsgs []*message.Batch
-			if rMsgs, resultRes = procs[i].ProcessMessage(m); resultRes != nil && resultRes.AckError() != nil {
+			if rMsgs, resultRes = procs[i].ProcessMessage(m); resultRes != nil {
 				// We immediately return if a processor hits an unrecoverable
 				// error on a message.
 				return nil, resultRes
@@ -109,7 +94,7 @@ func ExecuteCatchAll(procs []types.Processor, msgs ...*message.Batch) ([]*messag
 
 	if len(resultMsgs) == 0 {
 		if resultRes == nil {
-			resultRes = response.NewAck()
+			resultRes = nil
 		}
 		return nil, resultRes
 	}

@@ -70,7 +70,7 @@ func TestFileDirectory(t *testing.T) {
 		t.Errorf("Received duplicate message: %v", resStr)
 	}
 	act[resStr] = struct{}{}
-	require.NoError(t, aFn(context.Background(), response.NewAck()))
+	require.NoError(t, aFn(context.Background(), response.NewError(nil)))
 
 	msg, aFn, err = f.ReadWithContext(context.Background())
 	require.NoError(t, err)
@@ -80,7 +80,7 @@ func TestFileDirectory(t *testing.T) {
 		t.Errorf("Received duplicate message: %v", resStr)
 	}
 	act[resStr] = struct{}{}
-	require.NoError(t, aFn(context.Background(), response.NewAck()))
+	require.NoError(t, aFn(context.Background(), response.NewError(nil)))
 
 	_, _, err = f.ReadWithContext(context.Background())
 	assert.Equal(t, component.ErrTypeClosed, err)

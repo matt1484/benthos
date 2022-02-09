@@ -355,7 +355,7 @@ func (o *Switch) dispatchRetryOnErr(outputTargets [][]*message.Part) error {
 		msgCopy.SetAll(parts)
 		owg.Go(func() error {
 			throt := throttle.New(throttle.OptCloseChan(o.ctx.Done()))
-			resChan := make(chan types.Response)
+			resChan := make(chan response.Error)
 
 			// Try until success or shutdown.
 			for {
@@ -441,7 +441,7 @@ func (o *Switch) dispatchNoRetries(group *imessage.SortGroup, sourceMessage *mes
 		go func() {
 			defer wg.Done()
 
-			resChan := make(chan types.Response)
+			resChan := make(chan response.Error)
 			select {
 			case o.outputTSChans[i] <- types.NewTransaction(msgCopy, resChan):
 			case <-o.ctx.Done():
@@ -552,7 +552,7 @@ func (o *Switch) loop() {
 				resErr = o.dispatchNoRetries(group, trackedMsg, outputTargets)
 			}
 
-			var oResponse types.Response = response.NewAck()
+			oResponse := response.NewError(nil)
 			if resErr != nil {
 				oResponse = response.NewError(resErr)
 			}

@@ -62,7 +62,7 @@ func TestSocketServerBasic(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -133,7 +133,7 @@ func TestSocketServerRetries(t *testing.T) {
 		var tran types.Transaction
 		select {
 		case tran = <-rdr.TransactionChan():
-			var res types.Response = response.NewAck()
+			res := response.NewError(nil)
 			if reject {
 				res = response.NewError(errors.New("test err"))
 			}
@@ -260,7 +260,7 @@ func TestSocketServerReconnect(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -338,7 +338,7 @@ func TestSocketServerMultipart(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -410,7 +410,7 @@ func TestSocketServerMultipartCustomDelim(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -484,7 +484,7 @@ func TestSocketServerMultipartShutdown(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -547,7 +547,7 @@ func TestSocketUDPServerBasic(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -615,7 +615,7 @@ func TestSocketUDPServerRetries(t *testing.T) {
 		var tran types.Transaction
 		select {
 		case tran = <-rdr.TransactionChan():
-			var res types.Response = response.NewAck()
+			res := response.NewError(nil)
 			if reject {
 				res = response.NewError(errors.New("test err"))
 			}
@@ -731,7 +731,7 @@ func TestSocketUDPServerReconnect(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -804,7 +804,7 @@ func TestSocketUDPServerCustomDelim(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -882,7 +882,7 @@ func TestSocketUDPServerShutdown(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -955,7 +955,7 @@ func TestTCPSocketServerBasic(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -1029,7 +1029,7 @@ func TestTCPSocketServerReconnect(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -1102,7 +1102,7 @@ func TestTCPSocketServerMultipart(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -1170,7 +1170,7 @@ func TestTCPSocketServerMultipartCustomDelim(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
@@ -1239,7 +1239,7 @@ func TestTCPSocketServerMultipartShutdown(t *testing.T) {
 		select {
 		case tran = <-rdr.TransactionChan():
 			select {
-			case tran.ResponseChan <- response.NewAck():
+			case tran.ResponseChan <- response.NewError(nil):
 			case <-time.After(time.Second):
 				return nil, errors.New("timed out")
 			}
